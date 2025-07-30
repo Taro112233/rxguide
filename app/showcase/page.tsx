@@ -42,6 +42,7 @@ import { useTheme } from "next-themes"
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { toast } from "sonner"
 
 // Animation variants
 const containerVariants = {
@@ -82,13 +83,10 @@ type FormData = z.infer<typeof formSchema>;
 
 function StatefulUIPatternDemo() {
   const [state, setState] = React.useState<'empty' | 'loading' | 'error' | 'success'>('empty');
-  const [showToast, setShowToast] = React.useState(false);
 
   React.useEffect(() => {
     if (state === 'success') {
-      setShowToast(true);
-      const timer = setTimeout(() => setShowToast(false), 2500);
-      return () => clearTimeout(timer);
+      toast('โหลดยูสสำเร็จ!');
     }
   }, [state]);
 
@@ -159,19 +157,6 @@ function StatefulUIPatternDemo() {
           </motion.div>
         )}
       </motion.div>
-      <AnimatePresence>
-        {showToast && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 flex items-center space-x-2 animate-fade-in"
-          >
-            <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/><path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="2"/></svg>
-            <span>โหลดข้อมูลสำเร็จ!</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
@@ -595,7 +580,6 @@ export default function ShowcasePage() {
   const [showPassword, setShowPassword] = useState(false)
   const [loginForm, setLoginForm] = useState({ username: '', password: '' })
   const [progress, setProgress] = useState(65)
-  const [showToast, setShowToast] = useState(false)
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
   React.useEffect(() => setMounted(true), []);
@@ -654,8 +638,7 @@ export default function ShowcasePage() {
     setLoading(true)
     setTimeout(() => {
       setLoading(false)
-      setShowToast(true)
-      setTimeout(() => setShowToast(false), 3000)
+      toast('โหลดยูสสำเร็จ!')
     }, 2000)
   }
 
@@ -1365,8 +1348,7 @@ export default function ShowcasePage() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => {
-                    setShowToast(true);
-                    setTimeout(() => setShowToast(false), 3000);
+                    toast('บันทึกข้อมูลสำเร็จ!');
                   }}
                   className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
                 >
@@ -1374,25 +1356,6 @@ export default function ShowcasePage() {
                 </motion.button>
               </div>
             </div>
-
-            {/* Toast Notification */}
-            {showToast && (
-              <motion.div
-                initial={{ opacity: 0, y: -50 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -50 }}
-                className="fixed top-4 right-4 bg-green-500 text-white p-4 rounded-lg shadow-lg z-50 flex items-center space-x-2"
-              >
-                <CheckCircle className="w-5 h-5" />
-                <span>บันทึกข้อมูลสำเร็จ!</span>
-                <button
-                  onClick={() => setShowToast(false)}
-                  className="ml-2 text-green-200 hover:text-white"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </motion.div>
-            )}
           </div>
         </motion.section>
 

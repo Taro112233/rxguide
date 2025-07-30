@@ -1,3 +1,4 @@
+// app/page.tsx
 "use client";
 import { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
@@ -107,7 +108,7 @@ export default function AuthPage() {
               />
             </div>
             {error && (
-              <Alert variant="destructive">
+              <Alert variant="error">
                 <AlertTitle>{error}</AlertTitle>
               </Alert>
             )}

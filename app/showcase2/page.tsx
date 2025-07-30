@@ -42,6 +42,7 @@ import { useTheme } from "next-themes"
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { toast } from "sonner"
 
 // Animation variants
 const containerVariants = {
@@ -82,13 +83,10 @@ type FormData = z.infer<typeof formSchema>;
 
 function StatefulUIPatternDemo() {
   const [state, setState] = React.useState<'empty' | 'loading' | 'error' | 'success'>('empty');
-  const [showToast, setShowToast] = React.useState(false);
 
   React.useEffect(() => {
     if (state === 'success') {
-      setShowToast(true);
-      const timer = setTimeout(() => setShowToast(false), 2500);
-      return () => clearTimeout(timer);
+      toast('โหลดยูสำเร็จ!');
     }
   }, [state]);
 
@@ -159,19 +157,6 @@ function StatefulUIPatternDemo() {
           </motion.div>
         )}
       </motion.div>
-      <AnimatePresence>
-        {showToast && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 flex items-center space-x-2 animate-fade-in"
-          >
-            <svg width="20" height="20" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/><path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="2"/></svg>
-            <span>โหลดข้อมูลสำเร็จ!</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
