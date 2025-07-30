@@ -2,80 +2,59 @@
 "use client"
 
 import * as React from "react"
+import * as RadioGroupPrimitive from "@radix-ui/react-radio-group"
 import { motion, HTMLMotionProps } from "motion/react"
 import { cn } from "@/lib/utils"
 
-export interface RadioGroupProps extends React.HTMLAttributes<HTMLDivElement> {
-  value?: string
-  onValueChange?: (value: string) => void
+export interface RadioGroupProps extends React.ComponentProps<typeof RadioGroupPrimitive.Root> {
   orientation?: "horizontal" | "vertical"
 }
 
-const RadioGroup = React.forwardRef<HTMLDivElement, RadioGroupProps>(
-  ({ className, value, onValueChange, orientation = "vertical", children, ...props }, ref) => {
-    return (
-      <div
-        ref={ref}
-        role="radiogroup"
-        className={cn(
-          "grid gap-2",
-          orientation === "horizontal" ? "grid-flow-col" : "grid-flow-row",
-          className
-        )}
-        {...props}
-      >
-        {React.Children.map(children, (child) => {
-          if (React.isValidElement<RadioGroupItemProps>(child)) {
-            return React.cloneElement(child as React.ReactElement<RadioGroupItemProps>, {
-              checked: child.props.value === value,
-              onChange: () => onValueChange?.(child.props.value),
-            })
-          }
-          return child
-        })}
-      </div>
-    )
-  }
-)
-RadioGroup.displayName = "RadioGroup"
+const RadioGroup = React.forwardRef<
+  React.ElementRef<typeof RadioGroupPrimitive.Root>,
+  RadioGroupProps
+>(({ className, orientation = "vertical", ...props }, ref) => {
+  return (
+    <RadioGroupPrimitive.Root
+      className={cn(
+        "grid gap-2",
+        orientation === "horizontal" ? "grid-flow-col" : "grid-flow-row",
+        className
+      )}
+      {...props}
+      ref={ref}
+    />
+  )
+})
+RadioGroup.displayName = RadioGroupPrimitive.Root.displayName
 
-export interface RadioGroupItemProps extends HTMLMotionProps<"button"> {
-  value: string
-  checked?: boolean
-  onChange?: () => void
-}
+export interface RadioGroupItemProps extends React.ComponentProps<typeof RadioGroupPrimitive.Item> {}
 
-const RadioGroupItem = React.forwardRef<HTMLButtonElement, RadioGroupItemProps>(
-  ({ className, value, checked = false, onChange, ...props }, ref) => {
-    return (
-      <motion.button
-        ref={ref}
-        type="button"
-        role="radio"
-        aria-checked={checked}
-        className={cn(
-          "aspect-square h-4 w-4 rounded-full border border-input shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
-          className
-        )}
-        onClick={onChange}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-        {...props}
-      >
+const RadioGroupItem = React.forwardRef<
+  React.ElementRef<typeof RadioGroupPrimitive.Item>,
+  RadioGroupItemProps
+>(({ className, ...props }, ref) => {
+  return (
+    <RadioGroupPrimitive.Item
+      ref={ref}
+      className={cn(
+        "aspect-square h-4 w-4 rounded-full border border-primary text-primary shadow focus:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
+        className
+      )}
+      {...props}
+    >
+      <RadioGroupPrimitive.Indicator className="flex items-center justify-center">
         <motion.div
-          className="flex items-center justify-center"
-          initial={false}
-          animate={{
-            scale: checked ? 1 : 0,
-          }}
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          exit={{ scale: 0 }}
           transition={{ type: "spring", stiffness: 500, damping: 30 }}
-        >
-          <div className="h-2 w-2 rounded-full bg-primary" />
-        </motion.div>
-      </motion.button>
-    )
-  }
-)
-RadioGroupItem.displayName = "RadioGroupItem"
+          className="h-2 w-2 rounded-full bg-primary fill-primary"
+        />
+      </RadioGroupPrimitive.Indicator>
+    </RadioGroupPrimitive.Item>
+  )
+})
+RadioGroupItem.displayName = RadioGroupPrimitive.Item.displayName
 
 export { RadioGroup, RadioGroupItem }
