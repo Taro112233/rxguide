@@ -1,4 +1,4 @@
-// components/sections/LayoutSection.tsx
+// components/sections/LayoutSection.tsx - แก้ไข nested button issue
 'use client'
 
 import React, { useState } from 'react'
@@ -19,6 +19,14 @@ export function LayoutSection() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [activeTab, setActiveTab] = useState('overview')
   const [accordionValue, setAccordionValue] = useState('')
+
+  const sidebarItems = [
+    { icon: Home, label: 'หน้าหลัก', id: 'home' },
+    { icon: Users, label: 'ผู้ป่วย', id: 'patients' },
+    { icon: Calendar, label: 'นัดหมาย', id: 'appointments' },
+    { icon: FileText, label: 'รายงาน', id: 'reports' },
+    { icon: Settings, label: 'ตั้งค่า', id: 'settings' }
+  ]
 
   return (
     <motion.section id="layout" variants={itemVariants} className="mb-16">
@@ -49,17 +57,15 @@ export function LayoutSection() {
                       </SheetDescription>
                     </SheetHeader>
                     <nav className="mt-4 space-y-2">
-                      {[
-                        { icon: Home, label: 'หน้าหลัก' },
-                        { icon: Users, label: 'ผู้ป่วย' },
-                        { icon: Calendar, label: 'นัดหมาย' },
-                        { icon: FileText, label: 'รายงาน' },
-                        { icon: Settings, label: 'ตั้งค่า' }
-                      ].map((item, index) => (
+                      {sidebarItems.map((item) => (
                         <Button
-                          key={index}
+                          key={item.id}
                           variant="ghost"
                           className="w-full justify-start"
+                          onClick={() => {
+                            console.log(`Navigate to ${item.label}`)
+                            setSidebarOpen(false)
+                          }}
                         >
                           <item.icon className="mr-2 h-4 w-4" />
                           {item.label}

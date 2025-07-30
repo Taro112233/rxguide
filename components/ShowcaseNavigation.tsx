@@ -1,4 +1,5 @@
-// components/ShowcaseNavigation.tsx
+
+// components/ShowcaseNavigation.tsx - แก้ไข asChild issue
 'use client'
 
 import { motion } from 'motion/react'
@@ -21,19 +22,24 @@ interface ShowcaseNavigationProps {
 }
 
 export function ShowcaseNavigation({ sections }: ShowcaseNavigationProps) {
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(id)
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' })
+    }
+  }
+
   return (
     <motion.nav variants={itemVariants} className="mb-12">
       <div className="flex flex-wrap justify-center gap-4">
         {sections.map((section) => (
           <Button
             key={section.id}
-            asChild
-            className={`bg-gradient-to-r ${section.color} text-white hover:shadow-lg transition-all`}
+            onClick={() => scrollToSection(section.id)}
+            className={`bg-gradient-to-r ${section.color} text-white hover:shadow-lg transition-all flex items-center space-x-2`}
           >
-            <a href={`#${section.id}`} className="flex items-center space-x-2">
-              {section.icon}
-              <span className="font-medium">{section.title}</span>
-            </a>
+            {section.icon}
+            <span className="font-medium">{section.title}</span>
           </Button>
         ))}
       </div>
