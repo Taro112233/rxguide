@@ -162,7 +162,7 @@ export async function POST(request: NextRequest) {
 }
 
 // GET endpoint for calculation history (future implementation)
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // TODO: Implement calculation history retrieval
     // This would require authentication and database storage

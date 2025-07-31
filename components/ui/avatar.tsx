@@ -4,6 +4,7 @@
 import * as React from "react"
 import { motion, HTMLMotionProps } from "motion/react"
 import { cn } from "@/lib/utils"
+import Image from "next/image"
 
 export interface AvatarProps extends HTMLMotionProps<"div"> {
   size?: "sm" | "md" | "lg" | "xl"
@@ -53,16 +54,18 @@ const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
 )
 Avatar.displayName = "Avatar"
 
-const AvatarImage = React.forwardRef<
-  HTMLImageElement,
-  React.ImgHTMLAttributes<HTMLImageElement>
->(({ className, ...props }, ref) => (
-  <img
-    ref={ref}
+// แก้ไข components/ui/avatar.tsx - เพิ่ม alt prop
+
+const AvatarImage = (
+  { className, alt = "", src, ...props }: Omit<React.ComponentProps<typeof Image>, "ref"> 
+) => (
+  <Image
     className={cn("aspect-square h-full w-full object-cover", className)}
+    alt={alt}
+    src={src}
     {...props}
   />
-))
+)
 AvatarImage.displayName = "AvatarImage"
 
 const AvatarFallback = React.forwardRef<

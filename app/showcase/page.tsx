@@ -1,10 +1,9 @@
 // app/showcase/page.tsx
 'use client'
 
-import React, { useState } from 'react'
+import React from 'react'
 import { motion } from 'motion/react'
-import { Activity, Bell, User, Menu, Edit, Eye, Calendar, ChevronRight } from 'lucide-react'
-import { useTheme } from "next-themes"
+import { Activity, Menu, Edit, Eye, Calendar, User } from 'lucide-react'
 
 // Import sections
 import { BackgroundDecoration } from '@/components/BackgroundDecoration'
@@ -19,11 +18,6 @@ import { VisualizationSection } from '@/components/sections/VisualizationSection
 import { ShowcaseFooter } from '@/components/ShowcaseFooter'
 import { ShowcaseHeader } from '@/components/ShowcaseHeader'
 import { ShowcaseNavigation } from '@/components/ShowcaseNavigation'
-
-
-// Import shadcn components
-import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
 // Animation variants
 const containerVariants = {
@@ -82,7 +76,6 @@ export const showcaseSections = [
 ]
 
 export default function ShowcasePage() {
-  const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = React.useState(false)
   React.useEffect(() => setMounted(true), [])
 

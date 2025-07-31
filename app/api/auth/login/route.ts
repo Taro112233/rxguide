@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     const res = NextResponse.json({ user: { id: user.id, name: user.name, email: user.email }, token });
     res.headers.set('Set-Cookie', cookie);
     return res;
-  } catch (e) {
+  } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 } 

@@ -11,8 +11,6 @@ export interface InputProps extends Omit<HTMLMotionProps<"input">, "size"> {
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, type, error, ...props }, ref) => {
-    const [isFocused, setIsFocused] = React.useState(false)
-
     return (
       <motion.input
         type={type}
@@ -30,8 +28,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             ? { type: "tween", duration: 0.4 }
             : { type: "spring", duration: 0.4 }
         }
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
+        onFocus={() => {}}
+        onBlur={() => {}}
         whileFocus={{ scale: 1.02 }}
         {...props}
       />

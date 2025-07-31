@@ -87,7 +87,7 @@ export function calculateDose(input: CalculationInput): CalculationResult {
   }
   
   let doseInMg = 0;
-  let calculationSteps = {
+  const calculationSteps = {
     step1: '',
     step2: '',
     step3: ''
@@ -116,10 +116,10 @@ export function calculateDose(input: CalculationInput): CalculationResult {
       doseInMg = rule.maxDose || rule.dose!;
       calculationSteps.step1 = `${rule.ageDisplay}: ${doseInMg} mg/dose`;
     } else if (rule.unit === 'mg/day') {
-      const dailyDose = rule.maxDose || rule.dose!;
-      doseInMg = dailyDose / timesPerDay;
-      calculationSteps.step1 = `${rule.ageDisplay}: ${dailyDose} mg/day`;
-      calculationSteps.step3 = `${dailyDose} mg/day ÷ ${timesPerDay} ครั้ง/วัน = ${doseInMg} mg/dose`;
+      const ageDailyDose = rule.maxDose || rule.dose!;
+      doseInMg = ageDailyDose / timesPerDay;
+      calculationSteps.step1 = `${rule.ageDisplay}: ${ageDailyDose} mg/day`;
+      calculationSteps.step3 = `${ageDailyDose} mg/day ÷ ${timesPerDay} ครั้ง/วัน = ${doseInMg} mg/dose`;
     }
   }
   

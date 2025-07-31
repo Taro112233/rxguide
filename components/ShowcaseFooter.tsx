@@ -31,14 +31,14 @@ export function ShowcaseFooter() {
           
           {/* Tech Stack Badges */}
           <div className="flex justify-center space-x-2 mt-6">
-            {[
+            {([
               { name: 'Next.js', variant: 'default' },
               { name: 'React', variant: 'secondary' },
               { name: 'Tailwind', variant: 'outline' },
               { name: 'Shadcn UI', variant: 'default' },
               { name: 'Framer Motion', variant: 'secondary' }
-            ].map((tech, index) => (
-              <Badge key={tech.name} variant={tech.variant as any}>
+            ] as { name: string; variant: 'outline' | 'default' | 'secondary' | 'destructive' | 'success' | 'warning' | 'error' | 'info' }[]).map((tech) => (
+              <Badge key={tech.name} variant={tech.variant}>
                 {tech.name}
               </Badge>
             ))}

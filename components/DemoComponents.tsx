@@ -1,381 +1,332 @@
 // components/DemoComponents.tsx
-'use client'
+'use client';
 
-import React from 'react'
-import { motion, AnimatePresence } from 'motion/react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { toast } from "sonner"
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { 
-  FileText, 
-  Loader2, 
-  XCircle, 
-  CheckCircle, 
-  Home, 
-  Users, 
-  Settings,
-  Activity
-} from 'lucide-react'
+  Calculator, 
+  Pill, 
+  Heart, 
+  TrendingUp, 
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  Users
+} from 'lucide-react';
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+interface StatItem {
+  label: string;
+  value: string;
+  icon: React.ComponentType<{ className?: string }>;
+  color: string;
+  trend?: number;
+}
 
-// Schema for form validation
-const formSchema = z.object({
-  name: z.string().min(1, 'กรุณากรอกชื่อ').max(32, 'ชื่อยาวเกินไป'),
-  email: z.string().email('รูปแบบอีเมลไม่ถูกต้อง'),
-  password: z.string().min(6, 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'),
-})
+interface DoseCalculation {
+  drugName: string;
+  dose: string;
+  volume: string;
+  frequency: string;
+  duration: string;
+}
 
-type FormData = z.infer<typeof formSchema>
+const DemoStats = () => {
+  const [progress, setProgress] = useState(0);
+  
+  useEffect(() => {
+    const timer = setTimeout(() => setProgress(85), 500);
+    return () => clearTimeout(timer);
+  }, []);
 
-// Stateful UI Pattern Demo
-export function StatefulUIPatternDemo() {
-  const [state, setState] = React.useState<'empty' | 'loading' | 'error' | 'success'>('empty')
-
-  React.useEffect(() => {
-    if (state === 'success') {
-      toast('โหลดยูสำเร็จ!')
+  const stats: StatItem[] = [
+    {
+      label: 'ยาในระบบ',
+      value: '524',
+      icon: Pill,
+      color: 'text-blue-600',
+      trend: 12
+    },
+    {
+      label: 'การคำนวณวันนี้',
+      value: '148',
+      icon: Calculator,
+      color: 'text-green-600',
+      trend: 8
+    },
+    {
+      label: 'ผู้ใช้งานออนไลน์',
+      value: '32',
+      icon: Users,
+      color: 'text-purple-600',
+      trend: -3
+    },
+    {
+      label: 'ความแม่นยำ',
+      value: '99.7%',
+      icon: CheckCircle,
+      color: 'text-emerald-600',
+      trend: 0.2
     }
-  }, [state])
+  ];
 
   return (
-    <div>
-      <div className="flex space-x-2 mb-4">
-        {(['empty', 'loading', 'error', 'success'] as const).map((s) => (
-          <Button
-            key={s}
-            variant={state === s ? "default" : "outline"}
-            size="sm"
-            onClick={() => setState(s)}
-            className="capitalize"
-          >
-            {s}
-          </Button>
-        ))}
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {stats.map((stat, index) => {
+          const IconComponent = stat.icon;
+          return (
+            <Card key={index} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">{stat.label}</p>
+                    <p className="text-2xl font-bold">{stat.value}</p>
+                    {stat.trend !== undefined && (
+                      <div className={`flex items-center text-sm mt-1 ${
+                        stat.trend > 0 ? 'text-green-600' : 
+                        stat.trend < 0 ? 'text-red-600' : 'text-gray-600'
+                      }`}>
+                        <TrendingUp className="w-3 h-3 mr-1" />
+                        {stat.trend > 0 ? '+' : ''}{stat.trend}%
+                      </div>
+                    )}
+                  </div>
+                  <IconComponent className={`w-8 h-8 ${stat.color}`} />
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
-      <Card className="min-h-[120px] flex items-center justify-center">
-        <CardContent className="p-6">
-          {state === 'empty' && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center text-muted-foreground">
-              <FileText className="w-8 h-8 mb-2" />
-              <div className="text-sm">ไม่มีข้อมูลในระบบ</div>
-            </motion.div>
-          )}
-          {state === 'loading' && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center text-blue-500">
-              <Loader2 className="w-8 h-8 animate-spin mb-2" />
-              <div className="text-sm">กำลังโหลดข้อมูล...</div>
-            </motion.div>
-          )}
-          {state === 'error' && (
-            <motion.div 
-              initial={{ opacity: 0 }} 
-              animate={{ opacity: 1, x: [0, -8, 8, -8, 8, 0] }}
-              transition={{ type: 'tween', duration: 0.5 }}
-              className="flex flex-col items-center text-destructive"
-            >
-              <XCircle className="w-8 h-8 mb-2" />
-              <div className="text-sm mb-2">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>
-              <Button size="sm" variant="outline" onClick={() => setState('loading')}>
-                ลองใหม่
-              </Button>
-            </motion.div>
-          )}
-          {state === 'success' && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center text-green-500">
-              <CheckCircle className="w-8 h-8 mb-2" />
-              <div className="text-sm">โหลดข้อมูลสำเร็จ!</div>
-            </motion.div>
-          )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="w-5 h-5" />
+            ประสิทธิภาพระบบ
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex justify-between text-sm">
+              <span>ความแม่นยำการคำนวณ</span>
+              <span>{progress}%</span>
+            </div>
+            <Progress value={progress} className="h-2" />
+            <div className="grid grid-cols-2 gap-4 mt-4">
+              <div className="text-center p-3 bg-gray-50 rounded-lg">
+                <Clock className="w-6 h-6 text-blue-500 mx-auto mb-1" />
+                <div className="text-sm text-gray-600">เวลาตอบสนอง</div>
+                <div className="font-semibold">&lt; 100ms</div>
+              </div>
+              <div className="text-center p-3 bg-gray-50 rounded-lg">
+                <Heart className="w-6 h-6 text-red-500 mx-auto mb-1" />
+                <div className="text-sm text-gray-600">ความปลอดภัย</div>
+                <div className="font-semibold">100%</div>
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
-  )
-}
+  );
+};
 
-// Role-based UI Demo
-export function RoleBasedUIDemo() {
-  const [role, setRole] = React.useState<'admin' | 'doctor' | 'nurse' | 'clerk'>('admin')
+const DemoDoseCalculator = () => {
+  const [isCalculating, setIsCalculating] = useState(false);
+  const [result, setResult] = useState<DoseCalculation | null>(null);
 
-  const sidebarMenus = {
-    admin: [
-      { icon: Home, label: 'Dashboard' },
-      { icon: Users, label: 'User Management' },
-      { icon: FileText, label: 'Reports' },
-      { icon: Settings, label: 'Settings' },
-    ],
-    doctor: [
-      { icon: Home, label: 'Dashboard' },
-      { icon: FileText, label: 'Patient Records' },
-      { icon: Users, label: 'Appointments' },
-      { icon: Activity, label: 'Prescriptions' },
-    ],
-    nurse: [
-      { icon: Home, label: 'Dashboard' },
-      { icon: FileText, label: 'Patient Care' },
-      { icon: Users, label: 'Schedules' },
-    ],
-    clerk: [
-      { icon: Home, label: 'Dashboard' },
-      { icon: FileText, label: 'Registration' },
-      { icon: Users, label: 'Appointments' },
-    ],
-  }
-
-  const dashboardMetrics = {
-    admin: [
-      { label: 'Users', value: 120 },
-      { label: 'Revenue', value: '฿1.2M' },
-      { label: 'Active Sessions', value: 32 },
-    ],
-    doctor: [
-      { label: 'Patients Today', value: 18 },
-      { label: 'Appointments', value: 6 },
-      { label: 'Pending Labs', value: 2 },
-    ],
-    nurse: [
-      { label: 'Patients Assigned', value: 12 },
-      { label: 'Tasks', value: 8 },
-    ],
-    clerk: [
-      { label: 'Registrations', value: 24 },
-      { label: 'Appointments', value: 10 },
-    ],
-  }
-
-  return (
-    <div>
-      <div className="flex space-x-2 mb-4">
-        {(['admin', 'doctor', 'nurse', 'clerk'] as const).map((r) => (
-          <Button
-            key={r}
-            variant={role === r ? "default" : "outline"}
-            size="sm"
-            onClick={() => setRole(r)}
-            className="capitalize"
-          >
-            {r}
-          </Button>
-        ))}
-      </div>
-      <div className="flex flex-col md:flex-row gap-6">
-        {/* Sidebar */}
-        <motion.div
-          key={role}
-          initial={{ x: -40, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ type: 'spring', duration: 0.5 }}
-          className="w-full md:w-1/3"
-        >
-          <Card>
-            <CardContent className="p-4">
-              <div className="font-semibold mb-2">Sidebar ({role})</div>
-              <nav className="space-y-2">
-                {sidebarMenus[role].map((item, idx) => (
-                  <Button
-                    key={idx}
-                    variant="ghost"
-                    className="w-full justify-start"
-                    size="sm"
-                  >
-                    <item.icon className="mr-2 h-4 w-4" />
-                    {item.label}
-                  </Button>
-                ))}
-              </nav>
-            </CardContent>
-          </Card>
-        </motion.div>
-        {/* Dashboard Metrics */}
-        <motion.div
-          key={role + '-metrics'}
-          initial={{ y: 40, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ type: 'spring', duration: 0.5 }}
-          className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4"
-        >
-          {dashboardMetrics[role].map((metric, idx) => (
-            <Card key={idx} className="cursor-pointer hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                <div className="text-xs text-muted-foreground mb-1">{metric.label}</div>
-                <div className="text-2xl font-bold">{metric.value}</div>
-              </CardContent>
-            </Card>
-          ))}
-        </motion.div>
-      </div>
-    </div>
-  )
-}
-
-// Form Validation Demo
-export function FormValidationDemo() {
-  const form = useForm<FormData>({
-    resolver: zodResolver(formSchema),
-    mode: 'onTouched',
-  })
-
-  const [submitting, setSubmitting] = React.useState(false)
-
-  const onSubmit = (data: FormData) => {
-    setSubmitting(true)
+  const mockCalculation = () => {
+    setIsCalculating(true);
     setTimeout(() => {
-      form.reset()
-      setSubmitting(false)
-      toast('ส่งข้อมูลสำเร็จ!')
-    }, 2000)
-  }
+      setResult({
+        drugName: 'Paracetamol Syrup 120mg/5mL',
+        dose: '180 mg (15 mg/kg)',
+        volume: '7.5 mL',
+        frequency: 'ทุก 6 ชั่วโมง',
+        duration: '3-5 วัน'
+      });
+      setIsCalculating(false);
+    }, 2000);
+  };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>ชื่อ <span className="text-destructive">*</span></FormLabel>
-              <FormControl>
-                <Input placeholder="กรอกชื่อ" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>อีเมล <span className="text-destructive">*</span></FormLabel>
-              <FormControl>
-                <Input placeholder="example@email.com" type="email" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>รหัสผ่าน <span className="text-destructive">*</span></FormLabel>
-              <FormControl>
-                <Input placeholder="อย่างน้อย 6 ตัวอักษร" type="password" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <Button type="submit" disabled={submitting} className="w-full">
-          {submitting ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              กำลังส่ง...
-            </>
-          ) : (
-            'ส่งข้อมูล'
-          )}
-        </Button>
-      </form>
-    </Form>
-  )
-}
-
-// Accessibility Demo
-export function AccessibilityDemo() {
-  const [modalOpen, setModalOpen] = React.useState(false)
-
-  return (
-    <div>
-      <div className="flex space-x-2 mb-4">
-        <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-          <DialogTrigger asChild>
-            <Button>เปิด Modal (Enter/Space)</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Modal ตัวอย่าง</DialogTitle>
-              <DialogDescription>
-                Modal นี้สามารถปิดด้วยปุ่ม Esc หรือคลิกปุ่มปิด
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button onClick={() => setModalOpen(false)}>ปิด Modal</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-        <Button variant="outline" size="icon" aria-label="Icon button">
-          <Settings className="h-4 w-4" />
-        </Button>
-      </div>
-      <div className="flex space-x-2">
-        <Input placeholder="Tab เพื่อเปลี่ยน focus" />
-        <Button variant="secondary">ปุ่มถัดไป</Button>
-      </div>
-    </div>
-  )
-}
-
-// Data Fetching Demo
-export function DataFetchingDemo() {
-  const [state, setState] = React.useState<'idle' | 'loading' | 'success' | 'error'>('idle')
-  const [data, setData] = React.useState<string[]>([])
-
-  const fetchData = () => {
-    setState('loading')
-    setTimeout(() => {
-      if (Math.random() < 0.2) {
-        setState('error')
-        setData([])
-      } else {
-        setData(['ผู้ป่วย A', 'ผู้ป่วย B', 'ผู้ป่วย C'])
-        setState('success')
-      }
-    }, 1500)
-  }
-
-  React.useEffect(() => {
-    fetchData()
-  }, [])
-
-  return (
-    <Card className="min-h-[120px]">
-      <CardContent className="p-6">
-        {state === 'loading' && (
-          <div className="flex items-center space-x-2 text-blue-500">
-            <Loader2 className="h-6 w-6 animate-spin" />
-            <span>กำลังโหลดข้อมูล...</span>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Calculator className="w-5 h-5" />
+          ตัวอย่างการคำนวณขนาดยา
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          <div className="bg-blue-50 p-4 rounded-lg">
+            <h4 className="font-medium mb-2">ข้อมูลผู้ป่วย (ตัวอย่าง)</h4>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="text-gray-600">อายุ:</span>
+                <span className="ml-2 font-medium">2 ปี</span>
+              </div>
+              <div>
+                <span className="text-gray-600">น้ำหนัก:</span>
+                <span className="ml-2 font-medium">12 kg</span>
+              </div>
+              <div>
+                <span className="text-gray-600">อาการ:</span>
+                <span className="ml-2 font-medium">ไข้</span>
+              </div>
+              <div>
+                <span className="text-gray-600">อุณหภูมิ:</span>
+                <span className="ml-2 font-medium">38.5°C</span>
+              </div>
+            </div>
           </div>
-        )}
-        {state === 'error' && (
-          <div className="flex flex-col items-center text-destructive">
-            <XCircle className="h-6 w-6 mb-2" />
-            <div className="text-sm mb-2">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>
-            <Button size="sm" variant="outline" onClick={fetchData}>
-              ลองใหม่
+
+          {!result && !isCalculating && (
+            <Button onClick={mockCalculation} className="w-full">
+              คำนวณขนาดยา
             </Button>
-          </div>
-        )}
-        {state === 'success' && (
-          <div className="space-y-2">
-            {data.map((item, idx) => (
-              <Card key={idx} className="p-2 cursor-pointer hover:bg-accent">
-                <span className="text-sm">{item}</span>
-              </Card>
-            ))}
-          </div>
-        )}
-        {state === 'idle' && (
-          <Button onClick={fetchData}>โหลดข้อมูล</Button>
-        )}
+          )}
+
+          {isCalculating && (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">กำลังคำนวณ...</p>
+            </div>
+          )}
+
+          {result && (
+            <div className="space-y-4">
+              <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
+                <div className="flex items-center gap-2 mb-3">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  <h4 className="font-medium text-green-800">ผลการคำนวณ</h4>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <div>
+                    <span className="font-medium">ยาที่แนะนำ:</span>
+                    <span className="ml-2">{result.drugName}</span>
+                  </div>
+                  <div>
+                    <span className="font-medium">ขนาดยา:</span>
+                    <span className="ml-2">{result.dose}</span>
+                  </div>
+                  <div>
+                    <span className="font-medium">ปริมาตร:</span>
+                    <span className="ml-2">{result.volume}</span>
+                  </div>
+                  <div>
+                    <span className="font-medium">ความถี่:</span>
+                    <span className="ml-2">{result.frequency}</span>
+                  </div>
+                  <div>
+                    <span className="font-medium">ระยะเวลา:</span>
+                    <span className="ml-2">{result.duration}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <AlertTriangle className="w-4 h-4 text-yellow-600" />
+                  <h5 className="font-medium text-yellow-800">ข้อควรระวัง</h5>
+                </div>
+                <ul className="text-sm text-yellow-700 space-y-1">
+                  <li>• ไม่ควรเกิน 4 ครั้งต่อวัน</li>
+                  <li>• หากไข้ไม่ลดหลัง 3 วัน ควรพบแพทย์</li>
+                  <li>• ระวังการแพ้ยา Paracetamol</li>
+                </ul>
+              </div>
+
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setResult(null);
+                    setIsCalculating(false);
+                  }}
+                  className="flex-1"
+                >
+                  คำนวณใหม่
+                </Button>
+                <Button className="flex-1">
+                  บันทึกผล
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
-  )
-}
+  );
+};
+
+const DemoSystemAlerts = () => {
+  const alerts = [
+    {
+      type: 'warning',
+      title: 'ข้อห้ามใช้',
+      message: 'Aspirin ไม่แนะนำสำหรับเด็กอายุต่ำกว่า 16 ปี',
+      time: '2 นาทีที่แล้ว'
+    },
+    {
+      type: 'info',
+      title: 'อัปเดตแนวทาง',
+      message: 'แนวทางการรักษาโรคหวัดใหม่จาก TPPG',
+      time: '1 ชั่วโมงที่แล้ว'
+    },
+    {
+      type: 'success',
+      title: 'การคำนวณเสร็จสิ้น',
+      message: 'บันทึกข้อมูลการคำนวณสำเร็จ',
+      time: '3 ชั่วโมงที่แล้ว'
+    }
+  ];
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <AlertTriangle className="w-5 h-5" />
+          การแจ้งเตือนระบบ
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3">
+          {alerts.map((alert, index) => (
+            <div 
+              key={index} 
+              className={`p-3 rounded-lg border-l-4 ${
+                alert.type === 'warning' ? 'bg-yellow-50 border-yellow-400' :
+                alert.type === 'info' ? 'bg-blue-50 border-blue-400' :
+                'bg-green-50 border-green-400'
+              }`}
+            >
+              <div className="flex items-start justify-between">
+                <div>
+                  <h5 className="font-medium text-sm">{alert.title}</h5>
+                  <p className="text-sm text-gray-600 mt-1">{alert.message}</p>
+                </div>
+                <Badge 
+                  variant="secondary" 
+                  className={`text-xs ${
+                    alert.type === 'warning' ? 'bg-yellow-100 text-yellow-800' :
+                    alert.type === 'info' ? 'bg-blue-100 text-blue-800' :
+                    'bg-green-100 text-green-800'
+                  }`}
+                >
+                  {alert.time}
+                </Badge>
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+export { DemoStats, DemoDoseCalculator, DemoSystemAlerts };

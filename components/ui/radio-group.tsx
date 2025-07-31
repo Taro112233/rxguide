@@ -3,7 +3,7 @@
 
 import * as React from "react"
 import * as RadioGroupPrimitive from "@radix-ui/react-radio-group"
-import { motion, HTMLMotionProps } from "motion/react"
+import { motion } from "motion/react"
 import { cn } from "@/lib/utils"
 
 export interface RadioGroupProps extends React.ComponentProps<typeof RadioGroupPrimitive.Root> {
@@ -28,11 +28,9 @@ const RadioGroup = React.forwardRef<
 })
 RadioGroup.displayName = RadioGroupPrimitive.Root.displayName
 
-export interface RadioGroupItemProps extends React.ComponentProps<typeof RadioGroupPrimitive.Item> {}
-
 const RadioGroupItem = React.forwardRef<
   React.ElementRef<typeof RadioGroupPrimitive.Item>,
-  RadioGroupItemProps
+  React.ComponentProps<typeof RadioGroupPrimitive.Item>
 >(({ className, ...props }, ref) => {
   return (
     <RadioGroupPrimitive.Item
