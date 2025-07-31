@@ -6,6 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Calculator, 
   Pill, 
@@ -14,7 +18,13 @@ import {
   AlertTriangle,
   CheckCircle,
   Clock,
-  Users
+  Users,
+  Eye,
+  EyeOff,
+  Loader2,
+  Database,
+  Wifi,
+  WifiOff
 } from 'lucide-react';
 
 interface StatItem {
@@ -33,6 +43,7 @@ interface DoseCalculation {
   duration: string;
 }
 
+// Main Demo Stats Component (existing)
 const DemoStats = () => {
   const [progress, setProgress] = useState(0);
   
@@ -101,162 +112,82 @@ const DemoStats = () => {
           );
         })}
       </div>
-
+      
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="w-5 h-5" />
-            ประสิทธิภาพระบบ
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex justify-between text-sm">
-              <span>ความแม่นยำการคำนวณ</span>
-              <span>{progress}%</span>
-            </div>
-            <Progress value={progress} className="h-2" />
-            <div className="grid grid-cols-2 gap-4 mt-4">
-              <div className="text-center p-3 bg-gray-50 rounded-lg">
-                <Clock className="w-6 h-6 text-blue-500 mx-auto mb-1" />
-                <div className="text-sm text-gray-600">เวลาตอบสนอง</div>
-                <div className="font-semibold">&lt; 100ms</div>
-              </div>
-              <div className="text-center p-3 bg-gray-50 rounded-lg">
-                <Heart className="w-6 h-6 text-red-500 mx-auto mb-1" />
-                <div className="text-sm text-gray-600">ความปลอดภัย</div>
-                <div className="font-semibold">100%</div>
-              </div>
-            </div>
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium">ระบบพร้อมใช้งาน</span>
+            <span className="text-sm text-gray-600">{progress}%</span>
           </div>
+          <Progress value={progress} className="h-2" />
         </CardContent>
       </Card>
     </div>
   );
 };
 
-const DemoDoseCalculator = () => {
-  const [isCalculating, setIsCalculating] = useState(false);
-  const [result, setResult] = useState<DoseCalculation | null>(null);
+// NEW EXPORTS - Missing Components
 
-  const mockCalculation = () => {
-    setIsCalculating(true);
+// 1. Stateful UI Pattern Demo
+export const StatefulUIPatternDemo = () => {
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [data, setData] = useState<string>('');
+  
+  const handleAction = (newStatus: typeof status) => {
+    setStatus('loading');
     setTimeout(() => {
-      setResult({
-        drugName: 'Paracetamol Syrup 120mg/5mL',
-        dose: '180 mg (15 mg/kg)',
-        volume: '7.5 mL',
-        frequency: 'ทุก 6 ชั่วโมง',
-        duration: '3-5 วัน'
-      });
-      setIsCalculating(false);
-    }, 2000);
+      setStatus(newStatus);
+      if (newStatus === 'success') {
+        setData('ข้อมูลโหลดสำเร็จ - พบยา 156 รายการ');
+      } else if (newStatus === 'error') {
+        setData('เกิดข้อผิดพลาด - ไม่สามารถเชื่อมต่อฐานข้อมูลได้');
+      }
+    }, 1000);
   };
-
+  
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Calculator className="w-5 h-5" />
-          ตัวอย่างการคำนวณขนาดยา
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <h4 className="font-medium mb-2">ข้อมูลผู้ป่วย (ตัวอย่าง)</h4>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="text-gray-600">อายุ:</span>
-                <span className="ml-2 font-medium">2 ปี</span>
-              </div>
-              <div>
-                <span className="text-gray-600">น้ำหนัก:</span>
-                <span className="ml-2 font-medium">12 kg</span>
-              </div>
-              <div>
-                <span className="text-gray-600">อาการ:</span>
-                <span className="ml-2 font-medium">ไข้</span>
-              </div>
-              <div>
-                <span className="text-gray-600">อุณหภูมิ:</span>
-                <span className="ml-2 font-medium">38.5°C</span>
-              </div>
-            </div>
+      <CardContent className="p-4 space-y-4">
+        <div className="flex gap-2">
+          <Button 
+            onClick={() => handleAction('success')} 
+            size="sm" 
+            variant="default"
+            disabled={status === 'loading'}
+          >
+            โหลดสำเร็จ
+          </Button>
+          <Button 
+            onClick={() => handleAction('error')} 
+            size="sm" 
+            variant="destructive"
+            disabled={status === 'loading'}
+          >
+            จำลองข้อผิดพลาด
+          </Button>
+        </div>
+        
+        <div className="p-4 border rounded-lg">
+          <div className="flex items-center gap-2 mb-2">
+            <Badge variant={
+              status === 'success' ? 'default' : 
+              status === 'error' ? 'destructive' : 
+              status === 'loading' ? 'secondary' : 'outline'
+            }>
+              {status === 'loading' && <Loader2 className="w-3 h-3 mr-1 animate-spin" />}
+              Status: {status === 'idle' ? 'พร้อม' : status === 'loading' ? 'กำลังโหลด' : status === 'success' ? 'สำเร็จ' : 'ข้อผิดพลาด'}
+            </Badge>
           </div>
-
-          {!result && !isCalculating && (
-            <Button onClick={mockCalculation} className="w-full">
-              คำนวณขนาดยา
-            </Button>
-          )}
-
-          {isCalculating && (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">กำลังคำนวณ...</p>
+          
+          {status === 'loading' && (
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
             </div>
           )}
-
-          {result && (
-            <div className="space-y-4">
-              <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
-                <div className="flex items-center gap-2 mb-3">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                  <h4 className="font-medium text-green-800">ผลการคำนวณ</h4>
-                </div>
-                <div className="space-y-2 text-sm">
-                  <div>
-                    <span className="font-medium">ยาที่แนะนำ:</span>
-                    <span className="ml-2">{result.drugName}</span>
-                  </div>
-                  <div>
-                    <span className="font-medium">ขนาดยา:</span>
-                    <span className="ml-2">{result.dose}</span>
-                  </div>
-                  <div>
-                    <span className="font-medium">ปริมาตร:</span>
-                    <span className="ml-2">{result.volume}</span>
-                  </div>
-                  <div>
-                    <span className="font-medium">ความถี่:</span>
-                    <span className="ml-2">{result.frequency}</span>
-                  </div>
-                  <div>
-                    <span className="font-medium">ระยะเวลา:</span>
-                    <span className="ml-2">{result.duration}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <AlertTriangle className="w-4 h-4 text-yellow-600" />
-                  <h5 className="font-medium text-yellow-800">ข้อควรระวัง</h5>
-                </div>
-                <ul className="text-sm text-yellow-700 space-y-1">
-                  <li>• ไม่ควรเกิน 4 ครั้งต่อวัน</li>
-                  <li>• หากไข้ไม่ลดหลัง 3 วัน ควรพบแพทย์</li>
-                  <li>• ระวังการแพ้ยา Paracetamol</li>
-                </ul>
-              </div>
-
-              <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    setResult(null);
-                    setIsCalculating(false);
-                  }}
-                  className="flex-1"
-                >
-                  คำนวณใหม่
-                </Button>
-                <Button className="flex-1">
-                  บันทึกผล
-                </Button>
-              </div>
-            </div>
+          
+          {(status === 'success' || status === 'error') && (
+            <p className="text-sm">{data}</p>
           )}
         </div>
       </CardContent>
@@ -264,69 +195,411 @@ const DemoDoseCalculator = () => {
   );
 };
 
-const DemoSystemAlerts = () => {
-  const alerts = [
-    {
-      type: 'warning',
-      title: 'ข้อห้ามใช้',
-      message: 'Aspirin ไม่แนะนำสำหรับเด็กอายุต่ำกว่า 16 ปี',
-      time: '2 นาทีที่แล้ว'
+// 2. Role-based UI Demo
+export const RoleBasedUIDemo = () => {
+  const [role, setRole] = useState<'doctor' | 'nurse' | 'pharmacist' | 'admin'>('doctor');
+  
+  const roleConfigs = {
+    doctor: {
+      title: 'แพทย์',
+      description: 'จัดการข้อมูลผู้ป่วย, สั่งยา, ดูประวัติการรักษา',
+      permissions: ['ดูข้อมูลผู้ป่วย', 'สั่งยา', 'ดูผลแลป', 'เขียนใบรับรอง'],
+      color: 'text-blue-600 bg-blue-50 border-blue-200'
     },
-    {
-      type: 'info',
-      title: 'อัปเดตแนวทาง',
-      message: 'แนวทางการรักษาโรคหวัดใหม่จาก TPPG',
-      time: '1 ชั่วโมงที่แล้ว'
+    nurse: {
+      title: 'พยาบาล',
+      description: 'ดูแลผู้ป่วย, บันทึกอาการ, ให้ยาตามคำสั่งแพทย์',
+      permissions: ['ดูข้อมูลผู้ป่วย', 'บันทึกอาการ', 'ให้ยา', 'วัดสัญญาณชีพ'],
+      color: 'text-green-600 bg-green-50 border-green-200'
     },
-    {
-      type: 'success',
-      title: 'การคำนวณเสร็จสิ้น',
-      message: 'บันทึกข้อมูลการคำนวณสำเร็จ',
-      time: '3 ชั่วโมงที่แล้ว'
+    pharmacist: {
+      title: 'เภสัชกร',
+      description: 'ตรวจสอบใบสั่งยา, คำนวณขนาดยา, ให้คำปรึกษา',
+      permissions: ['ดูใบสั่งยา', 'คำนวณขนาดยา', 'ตรวจสอบอันตรกิริยา', 'ปรึกษายา'],
+      color: 'text-purple-600 bg-purple-50 border-purple-200'
+    },
+    admin: {
+      title: 'ผู้ดูแลระบบ',
+      description: 'จัดการผู้ใช้, ตั้งค่าระบบ, ดูรายงาน',
+      permissions: ['จัดการผู้ใช้', 'ตั้งค่าระบบ', 'ดูรายงาน', 'สำรองข้อมูล'],
+      color: 'text-red-600 bg-red-50 border-red-200'
     }
-  ];
-
+  };
+  
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <AlertTriangle className="w-5 h-5" />
-          การแจ้งเตือนระบบ
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          {alerts.map((alert, index) => (
-            <div 
-              key={index} 
-              className={`p-3 rounded-lg border-l-4 ${
-                alert.type === 'warning' ? 'bg-yellow-50 border-yellow-400' :
-                alert.type === 'info' ? 'bg-blue-50 border-blue-400' :
-                'bg-green-50 border-green-400'
-              }`}
+      <CardContent className="p-4 space-y-4">
+        <div className="flex flex-wrap gap-2">
+          {(Object.keys(roleConfigs) as Array<keyof typeof roleConfigs>).map(r => (
+            <Button 
+              key={r} 
+              onClick={() => setRole(r)} 
+              variant={role === r ? 'default' : 'outline'} 
+              size="sm"
             >
-              <div className="flex items-start justify-between">
-                <div>
-                  <h5 className="font-medium text-sm">{alert.title}</h5>
-                  <p className="text-sm text-gray-600 mt-1">{alert.message}</p>
-                </div>
-                <Badge 
-                  variant="secondary" 
-                  className={`text-xs ${
-                    alert.type === 'warning' ? 'bg-yellow-100 text-yellow-800' :
-                    alert.type === 'info' ? 'bg-blue-100 text-blue-800' :
-                    'bg-green-100 text-green-800'
-                  }`}
-                >
-                  {alert.time}
-                </Badge>
-              </div>
-            </div>
+              {roleConfigs[r].title}
+            </Button>
           ))}
         </div>
+        
+        <div className={`p-4 border rounded-lg ${roleConfigs[role].color}`}>
+          <h4 className="font-semibold mb-2">{roleConfigs[role].title} Dashboard</h4>
+          <p className="text-sm mb-3">{roleConfigs[role].description}</p>
+          
+          <div className="space-y-1">
+            <p className="text-sm font-medium">สิทธิ์การเข้าถึง:</p>
+            <ul className="text-sm space-y-1">
+              {roleConfigs[role].permissions.map((permission, index) => (
+                <li key={index} className="flex items-center gap-2">
+                  <CheckCircle className="w-3 h-3" />
+                  {permission}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
 };
 
-export { DemoStats, DemoDoseCalculator, DemoSystemAlerts };
+// 3. Form Validation Demo
+export const FormValidationDemo = () => {
+  const [formData, setFormData] = useState({
+    patientName: '',
+    age: '',
+    weight: '',
+    allergies: ''
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!formData.patientName.trim()) {
+      newErrors.patientName = 'กรุณาระบุชื่อผู้ป่วย';
+    }
+    
+    if (!formData.age || parseInt(formData.age) < 0 || parseInt(formData.age) > 120) {
+      newErrors.age = 'กรุณาระบุอายุที่ถูกต้อง (0-120 ปี)';
+    }
+    
+    if (!formData.weight || parseFloat(formData.weight) < 1 || parseFloat(formData.weight) > 200) {
+      newErrors.weight = 'กรุณาระบุน้ำหนักที่ถูกต้อง (1-200 kg)';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+  
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateForm()) return;
+    
+    setIsSubmitting(true);
+    // จำลองการส่งข้อมูล
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    setIsSubmitting(false);
+    
+    // แสดงผลสำเร็จ
+    alert('บันทึกข้อมูลสำเร็จ!');
+  };
+  
+  return (
+    <Card>
+      <CardContent className="p-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="patientName">ชื่อผู้ป่วย *</Label>
+            <Input
+              id="patientName"
+              value={formData.patientName}
+              onChange={(e) => setFormData(prev => ({ ...prev, patientName: e.target.value }))}
+              error={!!errors.patientName}
+              placeholder="ระบุชื่อผู้ป่วย"
+            />
+            {errors.patientName && (
+              <p className="text-sm text-red-600">{errors.patientName}</p>
+            )}
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="age">อายุ (ปี) *</Label>
+              <Input
+                id="age"
+                type="number"
+                value={formData.age}
+                onChange={(e) => setFormData(prev => ({ ...prev, age: e.target.value }))}
+                error={!!errors.age}
+                placeholder="0"
+                min="0"
+                max="120"
+              />
+              {errors.age && (
+                <p className="text-sm text-red-600">{errors.age}</p>
+              )}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="weight">น้ำหนัก (kg) *</Label>
+              <Input
+                id="weight"
+                type="number"
+                step="0.1"
+                value={formData.weight}
+                onChange={(e) => setFormData(prev => ({ ...prev, weight: e.target.value }))}
+                error={!!errors.weight}
+                placeholder="0.0"
+                min="1"
+                max="200"
+              />
+              {errors.weight && (
+                <p className="text-sm text-red-600">{errors.weight}</p>
+              )}
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="allergies">ประวัติแพ้ยา</Label>
+            <Input
+              id="allergies"
+              value={formData.allergies}
+              onChange={(e) => setFormData(prev => ({ ...prev, allergies: e.target.value }))}
+              placeholder="ระบุยาที่แพ้ (ถ้ามี)"
+            />
+          </div>
+          
+          <Button type="submit" disabled={isSubmitting} className="w-full">
+            {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            {isSubmitting ? 'กำลังบันทึก...' : 'บันทึกข้อมูล'}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  );
+};
+
+// 4. Accessibility Demo
+export const AccessibilityDemo = () => {
+  const [highContrast, setHighContrast] = useState(false);
+  const [fontSize, setFontSize] = useState('normal');
+  const [screenReader, setScreenReader] = useState(false);
+  
+  return (
+    <Card>
+      <CardContent className="p-4 space-y-4">
+        <div className="space-y-3">
+          <h4 className="font-semibold">การเข้าถึงสำหรับผู้พิการ</h4>
+          
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={highContrast}
+                onChange={(e) => setHighContrast(e.target.checked)}
+                className="rounded"
+              />
+              <span>โหมดความคมชัดสูง</span>
+            </Label>
+            
+            <div className="space-y-2">
+              <Label>ขนาดตัวอักษร</Label>
+              <div className="flex gap-2">
+                {['small', 'normal', 'large'].map(size => (
+                  <Button
+                    key={size}
+                    variant={fontSize === size ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setFontSize(size)}
+                  >
+                    {size === 'small' ? 'เล็ก' : size === 'normal' ? 'ปกติ' : 'ใหญ่'}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            
+            <Label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={screenReader}
+                onChange={(e) => setScreenReader(e.target.checked)}
+                className="rounded"
+              />
+              <span>เปิดใช้งาน Screen Reader</span>
+            </Label>
+          </div>
+        </div>
+        
+        <div 
+          className={`p-4 border rounded-lg transition-all ${
+            highContrast ? 'bg-black text-white border-white' : 'bg-gray-50'
+          } ${
+            fontSize === 'small' ? 'text-sm' : fontSize === 'large' ? 'text-lg' : 'text-base'
+          }`}
+        >
+          <h5 className="font-semibold mb-2">ตัวอย่างเนื้อหา</h5>
+          <p>
+            ระบบนี้รองรับการเข้าถึงสำหรับผู้ใช้ทุกกลุ่ม รวมถึงผู้พิการทางสายตา 
+            และผู้ที่มีความต้องการพิเศษอื่นๆ
+          </p>
+          
+          {screenReader && (
+            <Alert className="mt-3">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                Screen Reader Mode เปิดใช้งาน - ข้อความจะถูกอ่านออกเสียง
+              </AlertDescription>
+            </Alert>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+// 5. Data Fetching Demo
+export const DataFetchingDemo = () => {
+  const [isOnline, setIsOnline] = useState(true);
+  const [dataSource, setDataSource] = useState<'online' | 'cache' | 'offline'>('online');
+  const [isLoading, setIsLoading] = useState(false);
+  const [data, setData] = useState<any[]>([]);
+  const [error, setError] = useState<string>('');
+  
+  const fetchData = async (source: typeof dataSource) => {
+    setIsLoading(true);
+    setError('');
+    
+    try {
+      // จำลองการเรียกข้อมูล
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      if (source === 'online' && !isOnline) {
+        throw new Error('ไม่สามารถเชื่อมต่ออินเทอร์เน็ตได้');
+      }
+      
+      const mockData = {
+        online: [
+          { id: 1, name: 'Paracetamol', stock: 150, updated: 'Live' },
+          { id: 2, name: 'Amoxicillin', stock: 89, updated: 'Live' },
+          { id: 3, name: 'Ibuprofen', stock: 67, updated: 'Live' }
+        ],
+        cache: [
+          { id: 1, name: 'Paracetamol', stock: 145, updated: '5 นาทีที่แล้ว' },
+          { id: 2, name: 'Amoxicillin', stock: 92, updated: '5 นาทีที่แล้ว' },
+          { id: 3, name: 'Ibuprofen', stock: 70, updated: '5 นาทีที่แล้ว' }
+        ],
+        offline: [
+          { id: 1, name: 'Paracetamol', stock: 140, updated: 'Offline' },
+          { id: 2, name: 'Amoxicillin', stock: 95, updated: 'Offline' },
+          { id: 3, name: 'Ibuprofen', stock: 75, updated: 'Offline' }
+        ]
+      };
+      
+      setData(mockData[source]);
+      setDataSource(source);
+    } catch (err: any) {
+      setError(err.message);
+      // Fallback to cache/offline
+      if (source === 'online') {
+        await fetchData('cache');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  useEffect(() => {
+    fetchData('online');
+  }, []);
+  
+  return (
+    <Card>
+      <CardContent className="p-4 space-y-4">
+        <div className="flex items-center justify-between">
+          <h4 className="font-semibold">การจัดการข้อมูล</h4>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsOnline(!isOnline)}
+            >
+              {isOnline ? <Wifi className="w-4 h-4" /> : <WifiOff className="w-4 h-4" />}
+              {isOnline ? 'Online' : 'Offline'}
+            </Button>
+          </div>
+        </div>
+        
+        <div className="flex gap-2">
+          <Button
+            variant={dataSource === 'online' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => fetchData('online')}
+            disabled={isLoading}
+          >
+            <Database className="w-4 h-4 mr-1" />
+            Live Data
+          </Button>
+          <Button
+            variant={dataSource === 'cache' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => fetchData('cache')}
+            disabled={isLoading}
+          >
+            <Clock className="w-4 h-4 mr-1" />
+            Cache
+          </Button>
+          <Button
+            variant={dataSource === 'offline' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => fetchData('offline')}
+            disabled={isLoading}
+          >
+            <WifiOff className="w-4 h-4 mr-1" />
+            Offline
+          </Button>
+        </div>
+        
+        {error && (
+          <Alert variant="error">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        
+        <div className="border rounded-lg">
+          {isLoading ? (
+            <div className="p-4 space-y-2">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-4 w-1/2" />
+            </div>
+          ) : (
+            <div className="divide-y">
+              {data.map(item => (
+                <div key={item.id} className="p-3 flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">{item.name}</p>
+                    <p className="text-sm text-gray-600">คงเหลือ: {item.stock} หน่วย</p>
+                  </div>
+                  <Badge variant="outline" className="text-xs">
+                    {item.updated}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        
+        <div className="text-xs text-gray-500 text-center">
+          แหล่งข้อมูล: {dataSource === 'online' ? 'Live Database' : dataSource === 'cache' ? 'Local Cache' : 'Offline Storage'}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+// Export existing components
+export { DemoStats };
