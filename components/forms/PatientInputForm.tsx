@@ -1,9 +1,9 @@
 // components/forms/PatientInputForm.tsx
-// Modular structure following showcase pattern
+// Enhanced Main component with multi-drug support and patient session cache
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, createContext, useContext } from 'react';
 import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,15 +13,64 @@ import { PatientFormHeader } from '@/components/forms/sections/PatientFormHeader
 import { PatientProgressIndicator } from '@/components/forms/sections/PatientProgressIndicator';
 import { PatientInfoSection } from '@/components/forms/sections/PatientInfoSection';
 import { DrugSelectionSection } from '@/components/forms/sections/DrugSelectionSection';
+import { DosageRecommendationSection } from '@/components/forms/sections/DosageRecommendationSection';
 import { ConcentrationSection } from '@/components/forms/sections/ConcentrationSection';
 import { FrequencySection } from '@/components/forms/sections/FrequencySection';
 import { ReviewSection } from '@/components/forms/sections/ReviewSection';
 import { ResultsSection } from '@/components/forms/sections/ResultsSection';
-import { PatientFormFooter } from '@/components/forms/sections/PatientFormFooter';
 
 // Types and validation
 import { PatientInputSchema, type PatientInput } from '@/lib/validations/patient';
 import { type DrugConcentration, type FrequencyKey } from '@/lib/constants/drugs';
+
+// Enhanced types for multi-drug support
+export interface Drug {
+  id: string;
+  genericName: string;
+  brandNames: string[];
+  category: string;
+  indications: string[];
+  dosingRules: DosingRule[];
+}
+
+export interface DosingRule {
+  indication: string;
+  minDose: number;
+  maxDose: number;
+  recommendedDose: number;
+  unit: 'mg/kg/dose' | 'mg/dose';
+  ageMinYears: number;
+  ageMaxYears: number;
+  type: 'weight_based' | 'age_based';
+  priority?: number;
+}
+
+export interface PatientMedication {
+  id: string;
+  drug: Drug;
+  indication: string;
+  dosage: number; // mg/kg/dose or mg/dose
+  frequency: FrequencyKey;
+  concentration: DrugConcentration;
+  calculatedDose: {
+    doseInMg: number;
+    volumeInMl: number;
+    timesPerDay: number;
+  };
+  calculatedAt: Date;
+}
+
+export interface PatientSession {
+  id: string;
+  patient: {
+    ageYears: number;
+    ageMonths?: number;
+    weight: number;
+  };
+  medications: PatientMedication[];
+  createdAt: Date;
+  lastUpdated: Date;
+}
 
 // Animation variants
 const containerVariants = {
@@ -34,70 +83,179 @@ const containerVariants = {
   }
 };
 
-const stepVariants = {
-  hidden: { opacity: 0, x: 50 },
-  visible: { opacity: 1, x: 0 },
-  exit: { opacity: 0, x: -50 }
-};
-
-// Form context for sharing state between sections
+// Enhanced Form context
 export interface PatientFormContextType {
+  // Current step management
   currentStep: number;
   setCurrentStep: (step: number) => void;
-  selectedDrug: any | null;
-  setSelectedDrug: (drug: any) => void;
+  
+  // Current drug selection
+  selectedDrug: Drug | null;
+  setSelectedDrug: (drug: Drug | null) => void;
+  selectedIndication: string;
+  setSelectedIndication: (indication: string) => void;
+  selectedDosage: number | null;
+  setSelectedDosage: (dosage: number | null) => void;
+  customDosage: number | null;
+  setCustomDosage: (dosage: number | null) => void;
+  
+  // Concentration and frequency
   selectedConcentration: DrugConcentration | null;
-  setSelectedConcentration: (conc: DrugConcentration | null) => void;
-  selectedFrequency: FrequencyKey | '';
-  setSelectedFrequency: (freq: FrequencyKey | '') => void;
-  calculation: any | null;
-  setCalculation: (calc: any) => void;
+  setSelectedConcentration: (concentration: DrugConcentration | null) => void;
+  selectedFrequency: FrequencyKey;
+  setSelectedFrequency: (frequency: FrequencyKey) => void;
+  
+  // Current calculation result
+  calculation: any;
+  setCalculation: (calculation: any) => void;
+  
+  // Patient session (multi-drug support)
+  patientSession: PatientSession | null;
+  setPatientSession: (session: PatientSession | null) => void;
+  addMedicationToSession: (medication: PatientMedication) => void;
+  removeMedicationFromSession: (medicationId: string) => void;
+  
+  // Loading state
   loading: boolean;
   setLoading: (loading: boolean) => void;
+  
+  // Form instance
   form: any;
   resetForm: () => void;
 }
 
-export const PatientFormContext = React.createContext<PatientFormContextType | null>(null);
+const PatientFormContext = createContext<PatientFormContextType | undefined>(undefined);
 
-// Hook to use form context
-export const usePatientForm = () => {
-  const context = React.useContext(PatientFormContext);
-  if (!context) {
-    throw new Error('usePatientForm must be used within PatientFormProvider');
+export const usePatientForm = (): PatientFormContextType => {
+  const context = useContext(PatientFormContext);
+  if (context === undefined) {
+    throw new Error('usePatientForm must be used within a PatientFormProvider');
   }
   return context;
 };
 
-// Main form component
-const PatientInputForm: React.FC = () => {
-  // Form state
-  const [currentStep, setCurrentStep] = useState(1);
-  const [selectedDrug, setSelectedDrug] = useState<any | null>(null);
-  const [selectedConcentration, setSelectedConcentration] = useState<DrugConcentration | null>(null);
-  const [selectedFrequency, setSelectedFrequency] = useState<FrequencyKey | ''>('');
-  const [calculation, setCalculation] = useState<any | null>(null);
-  const [loading, setLoading] = useState(false);
+// Enhanced Patient Input Schema (removed gender)
+const EnhancedPatientInputSchema = PatientInputSchema.omit({ gender: true });
+type EnhancedPatientInput = Omit<PatientInput, 'gender'>;
 
-  // React Hook Form
-  const form = useForm<any>({
-    resolver: zodResolver(PatientInputSchema),
+export function PatientInputForm() {
+  // Form state
+  const form = useForm<EnhancedPatientInput>({
+    resolver: zodResolver(EnhancedPatientInputSchema),
     defaultValues: {
-      ageYears: '' as any,
-      ageMonths: '' as any,
-      weight: '' as any,
-      gender: undefined
-    }
+      ageYears: 0,
+      ageMonths: 0,
+      weight: 0,
+    },
   });
 
-  // Reset form function
+  // Step management
+  const [currentStep, setCurrentStep] = useState(1);
+  
+  // Current drug selection
+  const [selectedDrug, setSelectedDrug] = useState<Drug | null>(null);
+  const [selectedIndication, setSelectedIndication] = useState('');
+  const [selectedDosage, setSelectedDosage] = useState<number | null>(null);
+  const [customDosage, setCustomDosage] = useState<number | null>(null);
+  
+  // Concentration and frequency
+  const [selectedConcentration, setSelectedConcentration] = useState<DrugConcentration | null>(null);
+  const [selectedFrequency, setSelectedFrequency] = useState<FrequencyKey>('');
+  
+  // Calculation result
+  const [calculation, setCalculation] = useState<any>(null);
+  
+  // Patient session for multi-drug support
+  const [patientSession, setPatientSession] = useState<PatientSession | null>(null);
+  
+  // Loading state
+  const [loading, setLoading] = useState(false);
+
+  // Generate session ID
+  const generateSessionId = () => {
+    return `patient_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  };
+
+  // Add medication to current patient session
+  const addMedicationToSession = (medication: PatientMedication) => {
+    const formData = form.getValues();
+    
+    if (!patientSession) {
+      // Create new session
+      const newSession: PatientSession = {
+        id: generateSessionId(),
+        patient: {
+          ageYears: Number(formData.ageYears),
+          ageMonths: Number(formData.ageMonths) || 0,
+          weight: Number(formData.weight),
+        },
+        medications: [medication],
+        createdAt: new Date(),
+        lastUpdated: new Date(),
+      };
+      setPatientSession(newSession);
+      
+      // Cache in localStorage
+      localStorage.setItem(`patient_session_${newSession.id}`, JSON.stringify(newSession));
+    } else {
+      // Add to existing session
+      const updatedSession = {
+        ...patientSession,
+        medications: [...patientSession.medications, medication],
+        lastUpdated: new Date(),
+      };
+      setPatientSession(updatedSession);
+      
+      // Update cache
+      localStorage.setItem(`patient_session_${updatedSession.id}`, JSON.stringify(updatedSession));
+    }
+  };
+
+  // Remove medication from session
+  const removeMedicationFromSession = (medicationId: string) => {
+    if (!patientSession) return;
+    
+    const updatedSession = {
+      ...patientSession,
+      medications: patientSession.medications.filter(med => med.id !== medicationId),
+      lastUpdated: new Date(),
+    };
+    setPatientSession(updatedSession);
+    
+    // Update cache
+    localStorage.setItem(`patient_session_${updatedSession.id}`, JSON.stringify(updatedSession));
+  };
+
+  // Reset form for new patient
   const resetForm = () => {
     setCurrentStep(1);
     form.reset();
     setSelectedDrug(null);
+    setSelectedIndication('');
+    setSelectedDosage(null);
+    setCustomDosage(null);
     setSelectedConcentration(null);
     setSelectedFrequency('');
     setCalculation(null);
+    setPatientSession(null);
+    
+    // Clear cache
+    if (patientSession) {
+      localStorage.removeItem(`patient_session_${patientSession.id}`);
+    }
+  };
+
+  // Reset for new medication (same patient)
+  const resetForNewMedication = () => {
+    setCurrentStep(2); // Go back to drug selection
+    setSelectedDrug(null);
+    setSelectedIndication('');
+    setSelectedDosage(null);
+    setCustomDosage(null);
+    setSelectedConcentration(null);
+    setSelectedFrequency('');
+    setCalculation(null);
+    // Keep patientSession intact
   };
 
   // Context value
@@ -106,22 +264,32 @@ const PatientInputForm: React.FC = () => {
     setCurrentStep,
     selectedDrug,
     setSelectedDrug,
+    selectedIndication,
+    setSelectedIndication,
+    selectedDosage,
+    setSelectedDosage,
+    customDosage,
+    setCustomDosage,
     selectedConcentration,
     setSelectedConcentration,
     selectedFrequency,
     setSelectedFrequency,
     calculation,
     setCalculation,
+    patientSession,
+    setPatientSession,
+    addMedicationToSession,
+    removeMedicationFromSession,
     loading,
     setLoading,
     form,
-    resetForm
+    resetForm,
   };
 
   return (
     <PatientFormContext.Provider value={contextValue}>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-2xl mx-auto">
           
           {/* Header */}
           <PatientFormHeader />
@@ -134,23 +302,21 @@ const PatientInputForm: React.FC = () => {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="space-y-8"
+            className="space-y-6"
           >
             {/* Form Sections */}
             {currentStep === 1 && <PatientInfoSection />}
             {currentStep === 2 && <DrugSelectionSection />}
-            {currentStep === 3 && <ConcentrationSection />}
-            {currentStep === 4 && <FrequencySection />}
-            {currentStep === 5 && <ReviewSection />}
-            {currentStep === 6 && <ResultsSection />}
-
-            {/* Footer - Only show on drug selection step */}
-            {currentStep === 2 && <PatientFormFooter />}
+            {currentStep === 3 && <DosageRecommendationSection />}
+            {currentStep === 4 && <ConcentrationSection />}
+            {currentStep === 5 && <FrequencySection />}
+            {currentStep === 6 && <ReviewSection />}
+            {currentStep === 7 && <ResultsSection resetForNewMedication={resetForNewMedication} />}
           </motion.div>
         </div>
       </div>
     </PatientFormContext.Provider>
   );
-};
+}
 
 export default PatientInputForm;
